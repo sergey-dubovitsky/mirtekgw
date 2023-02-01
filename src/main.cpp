@@ -315,6 +315,7 @@ void mqttSubscribe(char *topic, byte *payload, unsigned int length)
 
 void tmrUptimeCallback()
 {
+  Serial.println("tmrUptimeCallback");
   if (!!mqttClient.connected())
   {
     mqttClient.publish(config.Mqtt.UptimeTopic.c_str(), String(millis()).c_str());
@@ -480,9 +481,9 @@ void OnMeterData5Callback()
   {
     const size_t capacity = JSON_OBJECT_SIZE(3);
     DynamicJsonDocument doc(capacity);
-    doc["SUM"] = data5.Sum;
-    doc["T1"] = data5.T1;
-    doc["T2"] = data5.T2;
+    doc["SUM"] = ((int)(100.0 * data5.Sum)) / 100.0;
+    doc["T1"] = ((int)(100.0 * data5.T1)) / 100.0;
+    doc["T2"] = ((int)(100.0 * data5.T2)) / 100.0;
     String result;
     serializeJson(doc, result);
     mqttClient.publish(config.Mqtt.ConsumptionTopic.c_str(), result.c_str(), true);
@@ -495,14 +496,14 @@ void OnMeterData9Callback()
   {
     const size_t capacity = JSON_OBJECT_SIZE(8);
     DynamicJsonDocument doc(capacity);
-    doc["Freq"] = data9.Freq;
-    doc["Cos"] = data9.Cos;
-    doc["I1"] = data9.I1;
-    doc["I2"] = data9.I2;
-    doc["I3"] = data9.I3;
-    doc["V1"] = data9.V1;
-    doc["V2"] = data9.V2;
-    doc["V3"] = data9.V3;
+    doc["Freq"] = ((int)(100.0 * data9.Freq)) / 100.0;
+    doc["Cos"] = ((int)(100.0 * data9.Cos)) / 100.0;
+    doc["I1"] = ((int)(100.0 * data9.I1)) / 100.0;
+    doc["I2"] = ((int)(100.0 * data9.I2)) / 100.0;
+    doc["I3"] = ((int)(100.0 * data9.I3)) / 100.0;
+    doc["V1"] = ((int)(100.0 * data9.V1)) / 100.0;
+    doc["V2"] = ((int)(100.0 * data9.V2)) / 100.0;
+    doc["V3"] = ((int)(100.0 * data9.V3)) / 100.0;
     String result;
     serializeJson(doc, result);
     mqttClient.publish(config.Mqtt.MetricsTopic.c_str(), result.c_str(), true);
@@ -530,7 +531,7 @@ void initHADiscovery()
   String deviceInfo = FPSTR(mqtt_device_template);
   deviceInfo.replace(F("_DEV_URL_"), "http://" + WiFi.localIP().toString());
   deviceInfo.replace(F("_DEV_ID_"), devId);
-  deviceInfo.replace(F("_DEV_NAME_"), "Mirtek GW");
+  deviceInfo.replace(F("_DEV_NAME_"), config.Mqtt.FriendlyName);
   deviceInfo.replace(F("_DEV_SW_VER_"), _mirtekgw2_version);
   String availabilityBlock = FPSTR(mqtt_availability_payload);
   availabilityBlock.replace(F("_AV_TOPIC_"), config.Mqtt.AvailabilityTopic);
@@ -604,7 +605,7 @@ void initHADiscovery()
   cSensor.replace(F("_NAME_"), "Cos");
   cSensor.replace(F("_OBJ_ID_"), devId + "_sensor_cos");
   mqttClient.publish(("homeassistant/sensor/sensor_cos/" + devId + "/config").c_str(), cSensor.c_str());
-  
+
   String fSensor = FPSTR(mqtt_sensor_template);
   fSensor.replace(F("_DEV_JSON_"), deviceInfo);
   fSensor.replace(F("_AVAILABILITY_"), availabilityBlock);
@@ -630,7 +631,7 @@ void initHADiscovery()
     iSensor.replace(F("_NAME_"), "I" + String(i));
     iSensor.replace(F("_OBJ_ID_"), devId + "_sensor_i" + String(i));
     mqttClient.publish(("homeassistant/sensor/sensor_i" + String(i) + "/" + devId + "/config").c_str(), iSensor.c_str());
-    
+
     String vSensor = FPSTR(mqtt_sensor_template);
     vSensor.replace(F("_DEV_JSON_"), deviceInfo);
     vSensor.replace(F("_AVAILABILITY_"), availabilityBlock);

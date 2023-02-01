@@ -121,6 +121,7 @@ private:
             {
                 if (_OnData5Callback)
                     _OnData5Callback();
+                return true;
             }
             else
             {
@@ -161,6 +162,7 @@ private:
             {
                 if (_OnData9Callback)
                     _OnData9Callback();
+                return true;
             }
             else
             {
